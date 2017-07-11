@@ -12,13 +12,12 @@ reload(sys)
 sys.setdefaultencoding('iso-8859-1')
 
 # Size of each block
-block_size = 256
-# IV size
-IV_size = block_size/8
+block_size_bits = 256
+block_size_bytes = block_size_bits/8
 
 # Initialisation vector generation function
 def genIV():
-    return os.urandom(IV_size)
+    return os.urandom(block_size_bytes)
 
 # Initialisation vector generation
 IV=genIV()
@@ -49,7 +48,7 @@ def CBC_decrypt(file_in,file_out,key):
     # Input file is open as buffer_in with read permission
     with open(file_in, "rb") as buffer_in:
         # The last block is our initialisation vector
-        last_block = buffer_in.read(IV_size)
+        last_block = buffer_in.read(block_size_bytes)
         # Displaying initialisation vector
         print('IV : 0x' + last_block.encode('hex'))
         # Open output file as buffer_out with write permission
@@ -57,7 +56,7 @@ def CBC_decrypt(file_in,file_out,key):
             # Loop while there is content
             while True:
                 # We get the current block and decoding it
-                curr_block = buffer_in.read(block_size).decode()
+                curr_block = buffer_in.read(block_size_bytes).decode()
                 # If the block is not empty
                 if curr_block != '':
                     # Then we decrypt it with the key and after we xor it with the initialisation vector
@@ -100,7 +99,7 @@ def CBC_crypt(file_in,file_out,key):
             buffer_out.write(last_block)
             while True:
                 # We get the current block 
-                curr_block = buffer_in.read(block_size)
+                curr_block = buffer_in.read(block_size_bytes)
                 # We get the current length block 
                 curr_len = len(curr_block)
 
@@ -111,9 +110,9 @@ def CBC_crypt(file_in,file_out,key):
                     break #EOF
 
                 # If current block length is lower than the block size
-                if curr_len < block_size:
+                if curr_len < block_size_bytes:
                     # Then we add padding
-                    curr_block += padding(block_size - curr_len)
+                    curr_block += padding(block_size_bytes - curr_len)
                 # Then we xor the current block with the last block and encrypt it with the key
                 enxor = xor_crypt(xor_crypt(curr_block,last_block),key)
                 # Encoding in utf-8
